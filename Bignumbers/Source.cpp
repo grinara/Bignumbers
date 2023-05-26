@@ -2,12 +2,13 @@
 #include <iostream>
 #include <string>
 #include <algorithm> 
-typedef unsigned char  BASE;
-typedef unsigned short int DBASE;
+//https://www.online-cpp.com/
+typedef unsigned short int BASE;
+typedef unsigned int  DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
 class bignumber {
-public:
+protected:
 	BASE* coef;
 	int len;
 	int maxlen;
@@ -319,7 +320,7 @@ public:
 	}
 	bignumber operator / (bignumber v) {
 		bignumber v1 = v;
-		DBASE b = (1 << BASE_SIZE);
+		DBASE b = (1 << (BASE_SIZE));
 		bignumber u1 = *this;
 		if (v.len == 1) { return u1 / v1.coef[0]; }
 		int n = v1.len;
