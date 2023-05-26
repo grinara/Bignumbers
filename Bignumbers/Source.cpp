@@ -499,7 +499,7 @@ istream& operator>>(istream& in, bignumber& c)
 int main() {
 	srand(time(NULL));
 	int M = 1000;
-	int T = 100000;
+	int T = 1000;
 	int n = rand() % M + 1;
 	int m = rand() % M + 1;
 	bignumber A(n, 3);
