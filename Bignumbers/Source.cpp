@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm> 
-typedef unsigned  char BASE;
+typedef unsigned char  BASE;
 typedef unsigned short int DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
@@ -67,9 +67,7 @@ public:
 		len = c.len;
 		maxlen = c.maxlen;
 		coef = new BASE[len];
-		for (int i = 0; i < len; i++) {
-			coef[i] = c.coef[i];
-		}
+		for (int i = 0; i < len; i++) {coef[i] = c.coef[i];}
 	};
 	~bignumber() {
 		coef = new BASE[1];
@@ -150,12 +148,14 @@ public:
 		if (this->compare(c) != 0) return true;
 		return false;
 	}
-	bignumber& operator = (const bignumber& c) {
+	bignumber& operator = (const bignumber c) {
 		if (this != &c) {
 			len = c.len;
 			maxlen = c.maxlen;
+			coef = new BASE[1];
 			delete[] coef;
 			coef = new BASE[len];
+			for (int i = 0; i < len; i++) { coef[i] = 0; }
 			for (int i = 0; i < len; i++) { coef[i] = c.coef[i]; }
 		}
 		return *this;
@@ -254,7 +254,7 @@ public:
 		}
 		w.coef[j] = k;
 		*this = w;
-		return w;
+		return *this;
 	}
 	bignumber operator / (BASE v) {
 		bignumber q(len);
@@ -321,14 +321,12 @@ public:
 		bignumber v1 = v;
 		DBASE b = (1 << BASE_SIZE);
 		bignumber u1 = *this;
+		if (v.len == 1) { return u1 / v1.coef[0]; }
 		int n = v1.len;
 		int m = u1.len - v1.len;
 		DBASE tmp = v1.coef[n - 1] + 1;
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
-		//int n = v1.len;
-		//int m = u1.len - v1.len;
-		//tmp = 0;
 		if (d != 1) {
 			u1 = u1 * d;
 			v1 = v1 * d;
@@ -336,6 +334,84 @@ public:
 		else {
 			u1.coef[len] = 0;
 		}
+		if(u1.len==m+n){ u1.coef[len] = 0; }
+		int j = m;
+		bignumber w(m + 1);
+		DBASE q = 0;
+		BASE jjj;
+		DBASE r = 0;
+		DBASE tmp1 = 0;
+		DBASE tmp2 = 0;
+		while (j >= 0) {
+			q = 0;
+			r = 0;
+			q = (u1.coef[j + n] * b + u1.coef[j + n - 1]) / v1.coef[n - 1];
+			r = (u1.coef[j + n] * b + u1.coef[j + n - 1]) % v1.coef[n - 1];
+			while (r < b) {
+				tmp1 = b * r + u1.coef[j + n - 2];
+				tmp2 = v1.coef[n - 2] * q;
+				if ((q == b) || (tmp2 > tmp1)) {
+					q = q - 1; r = r + v1.coef[n - 1];
+				}
+				else break;
+			}
+			BASE q1 = (BASE)q;
+			int i = 0;
+			int k2 = 0;
+			int k1 = 0;
+			tmp1 = 0;
+			tmp2 = 0;
+			while (i < n)
+			{
+				tmp1 = v1.coef[i] * q1 + k1;
+				jjj = (BASE)tmp1;
+				
+				k1 = (BASE)(tmp1 >> BASE_SIZE);
+				tmp2 = (b | u1.coef[i + j]) - jjj - k2;
+				u1.coef[j + i] = (BASE)tmp2;
+				k2 = !(tmp2 >> BASE_SIZE);
+				i++;
+            }
+			
+			tmp = (b | u1.coef[n + j]) - k1 - k2;
+			u1.coef[n + j] = (BASE)tmp;
+			k2 = !(tmp >> BASE_SIZE);
+			tmp = 0;
+			if (k2 == 1) {
+				k2 = 0;
+				q1--;
+				while (i < n) {
+					tmp = u1.coef[j + i] + v1.coef[i] + k2;
+					u1.coef[j + i] = (BASE)tmp;
+					k2 = (BASE)(tmp >> BASE_SIZE);
+					i++;
+				}
+				u1.coef[j + n] = u1.coef[j + n] + k2;;
+			}
+			w.coef[j] = q1;
+			j--;
+		}
+		w.len_norm();
+		return w;
+
+	}
+	bignumber operator % (bignumber v) {
+		bignumber v1 = v;
+		DBASE b = (1 << BASE_SIZE);
+		bignumber u1 = *this;
+		int n = v1.len;
+		int m = u1.len - v1.len;
+		DBASE tmp = v1.coef[n - 1] + 1;
+		tmp = b / tmp;
+		BASE d = (BASE)tmp;
+		if (d != 1) {
+			u1 = u1 * d;
+			v1 = v1 * d;
+		}
+		else {
+			u1.coef[len] = 0;
+		}
+		if (u1.len == m + n) { u1.coef[len] = 0; }
 		int j = m;
 		bignumber w(m + 1);
 		DBASE q = 0;
@@ -357,9 +433,6 @@ public:
 				else break;
 
 			}
-
-			cout << q;
-			cout << endl;
 			BASE q1 = (BASE)q;
 			int i = 0;
 			int k2 = 0;
@@ -370,14 +443,17 @@ public:
 			{
 				tmp1 = v1.coef[i] * q1 + k1;
 				jjj = (BASE)tmp1;
+
 				k1 = (BASE)(tmp1 >> BASE_SIZE);
-				tmp2 = (b | u1.coef[i + j]) - jjj - k2;;
+				tmp2 = (b | u1.coef[i + j]) - jjj - k2;
 				u1.coef[j + i] = (BASE)tmp2;
 				k2 = !(tmp2 >> BASE_SIZE);
 				i++;
-
 			}
 
+			tmp = (b | u1.coef[n + j]) - k1 - k2;
+			u1.coef[n + j] = (BASE)tmp;
+			k2 = !(tmp >> BASE_SIZE);
 			tmp = 0;
 			if (k2 == 1) {
 				k2 = 0;
@@ -388,15 +464,16 @@ public:
 					k2 = (BASE)(tmp >> BASE_SIZE);
 					i++;
 				}
+				u1.coef[j + n] = u1.coef[j + n] + k2;;
 			}
 			w.coef[j] = q1;
-			cout << "j" << j << " " << "q1" << " " << (int)q1 << "  ";
 			j--;
 		}
 
-		//u1 = u1/ d; //остаток
 		w.len_norm();
-		return w;
+		u1.len_norm();
+		if(d!=1){ u1 = u1 / d; }
+		return u1;
 
 	}
 	friend ostream& operator<<(ostream&, const bignumber& c);
@@ -421,14 +498,26 @@ istream& operator>>(istream& in, bignumber& c)
 }
 int main() {
 	srand(time(NULL));
-	bignumber a;
-	bignumber b;
-	bignumber c;
-	a.Input("9898913589077890");
-	b.Input("27867");
-	c = a / b;
-	//for (int i = 0; i < a.maxlen; i++) { cout << a.coef[i]<<" "; }
-	cout << endl;
-	//for (int i = 0; i < c.maxlen; i++) { cout << c.coef[i] << " "; }
-	c.Output();
+	int M = 1000;
+	int T = 100000;
+	int n = rand() % M + 1;
+	int m = rand() % M + 1;
+	bignumber A(n, 3);
+	bignumber B(n, 3);
+	bignumber C = A / B;
+	bignumber D = A % B;
+	do {
+ 		int n = rand() % M + 1;
+		int m = rand() % M + 1;
+		bignumber A(n, 3);
+		bignumber B(n, 3);
+		bignumber C = A / B;
+		bignumber D = A % B;
+		//A.Output();
+		//cout << endl << endl;
+		//B.Output();
+		//cout << endl << endl;
+	} while (A == C * B + D && A - D == C * B && D < B && --T);
+	cout << T;
+	//*/
 }
