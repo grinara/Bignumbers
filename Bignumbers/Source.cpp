@@ -3,8 +3,8 @@
 #include <string>
 #include <algorithm> 
 //https://www.online-cpp.com/
-typedef unsigned int BASE;
-typedef unsigned  long long int  DBASE;
+typedef unsigned  char BASE;
+typedef unsigned  short int  DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
 class bignumber {
@@ -235,6 +235,7 @@ public:
 	bignumber operator * (BASE v) {
 		bignumber w(len + 1);
 		if (*this == 0 || v == 0) { return w; }
+		if (*this == 1 || v == 1) { w = *this; return w; }
 		int j = 0;
 		int k = 0;
 		DBASE tmp;
@@ -255,7 +256,8 @@ public:
 	bignumber operator / (BASE v) {
 		bignumber q(len);
 		if (v <= 0) { cout << "Деление на 0!!!"; }
-		else if (v == 1) { return *this; }
+		else if (*this == 1) { return q; }
+		else if (v == 1) { q = *this; return q; }
 		else {
 			int j = 0;
 			DBASE r = 0;
@@ -275,6 +277,8 @@ public:
 	BASE operator % (BASE v) {
 		DBASE r = 0;
 		if (v <= 0) { cout << "Деление на 0!!!"; }
+		else if (*this == 1) { return 1; }
+		else if (v == 1) { return 0; }
 		else {
 			int j = 0;
 			DBASE tmp;
@@ -290,6 +294,9 @@ public:
 	}
 	bignumber operator * (bignumber v) {
 		bignumber w(len + v.len); // v.len = n(V), len = m(U)
+		if (*this == 0 || v == 0) { return w; }
+		if (*this == 1) { w = v; return w; }
+		if (v == 1) { return w = *this; return w; }
 		for (int i = 0; i < w.maxlen; i++) { w.coef[i] = 0; }
 		int m = len;
 		int n = v.len;
@@ -320,9 +327,10 @@ public:
 		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
 		if (v.len == 1) { return u1 / v1.coef[0]; }
+
 		int n = v1.len;
 		int m = u1.len - v1.len;
-		DBASE tmp = v1.coef[n - 1] + 1;
+		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
 		if (d != 1) {
@@ -343,13 +351,14 @@ public:
 		while (j >= 0) {
 			q = 0;
 			r = 0;
-			q = (u1.coef[j + n] * b + u1.coef[j + n - 1]) / v1.coef[n - 1];
-			r = (u1.coef[j + n] * b + u1.coef[j + n - 1]) % v1.coef[n - 1];
+			q = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) / (DBASE)v1.coef[n - 1];
+			r = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) % (DBASE)v1.coef[n - 1];
 			while (r < b) {
-				tmp1 = b * r + u1.coef[j + n - 2];
-				tmp2 = v1.coef[n - 2] * q;
+				tmp1 = b * r + (DBASE)u1.coef[j + n - 2];
+				tmp2 = (DBASE)v1.coef[n - 2] * q;
 				if ((q == b) || (tmp2 > tmp1)) {
-					q = q - 1; r = r + v1.coef[n - 1];
+					q = q - 1;
+					r = r + (DBASE)v1.coef[n - 1];
 				}
 				else break;
 			}
@@ -361,17 +370,17 @@ public:
 			tmp2 = 0;
 			while (i < n)
 			{
-				tmp1 = v1.coef[i] * q1 + k1;
+				tmp1 = (DBASE)v1.coef[i] * (DBASE)q1 + (DBASE)k1;
 				jjj = (BASE)tmp1;
 				
 				k1 = (BASE)(tmp1 >> BASE_SIZE);
-				tmp2 = (b | u1.coef[i + j]) - jjj - k2;
+				tmp2 = (b | (DBASE)u1.coef[i + j]) - (DBASE)jjj - (DBASE)k2;
 				u1.coef[j + i] = (BASE)tmp2;
 				k2 = !(tmp2 >> BASE_SIZE);
 				i++;
             }
 			
-			tmp = (b | u1.coef[n + j]) - k1 - k2;
+			tmp = (b | (DBASE)u1.coef[n + j]) - k1 - k2;
 			u1.coef[n + j] = (BASE)tmp;
 			k2 = !(tmp >> BASE_SIZE);
 			tmp = 0;
@@ -379,7 +388,7 @@ public:
 				k2 = 0;
 				q1--;
 				while (i < n) {
-					tmp = u1.coef[j + i] + v1.coef[i] + k2;
+					tmp = (DBASE)u1.coef[j + i] + (DBASE)v1.coef[i] + (DBASE)k2;
 					u1.coef[j + i] = (BASE)tmp;
 					k2 = (BASE)(tmp >> BASE_SIZE);
 					i++;
@@ -398,9 +407,10 @@ public:
 		DBASE b = 1;
 		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
+		if (v1.len == 1) { return u1 % v1.coef[0]; }
 		int n = v1.len;
 		int m = u1.len - v1.len;
-		DBASE tmp = v1.coef[n - 1] + 1;
+		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
 		if (d != 1) {
@@ -421,13 +431,13 @@ public:
 		while (j >= 0) {
 			q = 0;
 			r = 0;
-			q = (u1.coef[j + n] * b + u1.coef[j + n - 1]) / v1.coef[n - 1];
-			r = (u1.coef[j + n] * b + u1.coef[j + n - 1]) % v1.coef[n - 1];
+			q = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) / (DBASE)v1.coef[n - 1];
+			r = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) % (DBASE)v1.coef[n - 1];
 			while (r < b) {
-				tmp1 = b * r + u1.coef[j + n - 2];
-				tmp2 = v1.coef[n - 2] * q;
+				tmp1 = b * r + (DBASE)u1.coef[j + n - 2];
+				tmp2 = (DBASE)v1.coef[n - 2] * q;
 				if ((q == b) || (tmp2 > tmp1)) {
-					q = q - 1; r = r + v1.coef[n - 1];
+					q = q - 1; r = r + (DBASE)v1.coef[n - 1];
 				}
 				else break;
 
@@ -440,17 +450,17 @@ public:
 			tmp2 = 0;
 			while (i < n)
 			{
-				tmp1 = v1.coef[i] * q1 + k1;
+				tmp1 = (DBASE)v1.coef[i] * q1 + k1;
 				jjj = (BASE)tmp1;
 
 				k1 = (BASE)(tmp1 >> BASE_SIZE);
-				tmp2 = (b | u1.coef[i + j]) - jjj - k2;
+				tmp2 = (b | (DBASE)u1.coef[i + j]) - jjj - k2;
 				u1.coef[j + i] = (BASE)tmp2;
 				k2 = !(tmp2 >> BASE_SIZE);
 				i++;
 			}
 
-			tmp = (b | u1.coef[n + j]) - k1 - k2;
+			tmp = (b | (DBASE)u1.coef[n + j]) - k1 - k2;
 			u1.coef[n + j] = (BASE)tmp;
 			k2 = !(tmp >> BASE_SIZE);
 			tmp = 0;
@@ -458,12 +468,12 @@ public:
 				k2 = 0;
 				q1--;
 				while (i < n) {
-					tmp = u1.coef[j + i] + v1.coef[i] + k2;
+					tmp = (DBASE)u1.coef[j + i] + v1.coef[i] + k2;
 					u1.coef[j + i] = (BASE)tmp;
 					k2 = (BASE)(tmp >> BASE_SIZE);
 					i++;
 				}
-				u1.coef[j + n] = u1.coef[j + n] + k2;;
+				u1.coef[j + n] = u1.coef[j + n] + k2;
 			}
 			w.coef[j] = q1;
 			j--;
@@ -508,26 +518,26 @@ int main() {
 	return 0;
 	*/
 	int M = 1000;
-	int T = 1000;
+	int T = 100000;
 	int n = rand() % M + 1;
 	int m = rand() % M + 1;
 	bignumber A(n, 3);
 	bignumber B(n, 3);
 	bignumber C = A / B;
 	bignumber D = A % B;
-	do {
-		cout << T << endl;
- 		int n = rand() % M + 1;
-		int m = rand() % M + 1;
-		bignumber A(n, 3);
-		bignumber B(n, 3);
-		bignumber C = A / B;
-		bignumber D = A % B;
-		//A.Output();
-		//cout << endl << endl;
-		//B.Output();
-		//cout << endl << endl;
-	} while (A == C * B + D && A - D == C * B && D < B && --T);
-	cout << T;
+		do {
+			cout << T << endl;
+			int n = rand() % M + 1;
+			int m = rand() % M + 1;
+			bignumber A(n, 3);
+			bignumber B(n, 3);
+			bignumber C = A / B;
+			bignumber D = A % B;
+			//A.Output();
+			//cout << endl << endl;
+			//B.Output();
+			//cout << endl << endl;
+		} while (A == C * B + D && A - D == C * B && D < B && --T);
+		cout << T;
 	//*/
 }
