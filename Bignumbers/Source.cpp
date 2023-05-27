@@ -3,8 +3,8 @@
 #include <string>
 #include <algorithm> 
 //https://www.online-cpp.com/
-typedef unsigned short int BASE;
-typedef unsigned int  DBASE;
+typedef unsigned int BASE;
+typedef unsigned  long long int  DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
 class bignumber {
@@ -106,8 +106,8 @@ public:
 		maxlen = len;
 		for (int i = start; i < l; i++) {
 			bignumber t(1);
-			t.coef[0] = str[i] - '0';
-			*this = (*this * c) + t;
+			t.coef[0] = (BASE)str[i] - (BASE)'0';
+			*this = (*this * (BASE)c) + t;
 		}
 	}
 	void Output(BASE c = 10) {
@@ -116,7 +116,7 @@ public:
 		int j = 0;
 		while (u != 0) {
 			BASE t = u % c;
-			t = t + '0';
+			t = (BASE)t + (BASE)'0';
 			u = u / c;
 			str += t;
 		}
@@ -169,23 +169,25 @@ public:
 
 		DBASE tmp;
 		bignumber w(l);
-		//w.len = l;
 		while (j < t) {
-			tmp = coef[j] + v.coef[j] + k;
+			tmp = (DBASE)coef[j] + (DBASE)v.coef[j] + (DBASE)k;
 			w.coef[j] = (BASE)tmp;
-			k = (BASE)(tmp >> BASE_SIZE);
+			tmp = tmp >> BASE_SIZE;
+			k = (BASE)(tmp);
 			j++;
 		}
 		while (j < len) {
-			tmp = coef[j] + k;
+			tmp = (DBASE)coef[j] + (DBASE)k;
 			w.coef[j] = (BASE)tmp;
-			k = (BASE)(tmp >> BASE_SIZE);
+			tmp = tmp >> BASE_SIZE;
+			k = (BASE)(tmp);
 			j++;
 		}
 		while (j < v.len) {
-			tmp = v.coef[j] + k;
+			tmp = (DBASE)v.coef[j] + (DBASE)k;
 			w.coef[j] = (BASE)tmp;
-			k = (BASE)(tmp >> BASE_SIZE);
+			tmp = tmp >> BASE_SIZE;
+			k = (BASE)(tmp);
 			j++;
 		}
 		w.coef[j] = k;
@@ -233,28 +235,17 @@ public:
 		int k = 0;
 		DBASE tmp;
 		while (j < len) {
-			tmp = coef[j] * v + k;
+			tmp = ((DBASE)coef[j] * (DBASE)v) + (DBASE)k;
 			w.coef[j] = (BASE)tmp;
 			k = (BASE)(tmp >> BASE_SIZE);
 			j++;
 		}
-		w.coef[j] = k;
+		w.coef[j] = (BASE)k;
 		w.len_norm();
 		return w;
 	}
 	bignumber& operator *= (BASE v) {
-		int j = 0;
-		int k = 0;
-		DBASE tmp;
-		bignumber w(len);
-		while (j < len) {
-			tmp = coef[j] * v + k;
-			w.coef[j] = (BASE)tmp;
-			k = (BASE)(tmp >> BASE_SIZE);
-			j++;
-		}
-		w.coef[j] = k;
-		*this = w;
+		*this = *this * v;
 		return *this;
 	}
 	bignumber operator / (BASE v) {
@@ -320,7 +311,8 @@ public:
 	}
 	bignumber operator / (bignumber v) {
 		bignumber v1 = v;
-		DBASE b = (1 << (BASE_SIZE));
+		DBASE b = 1;
+		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
 		if (v.len == 1) { return u1 / v1.coef[0]; }
 		int n = v1.len;
@@ -398,7 +390,8 @@ public:
 	}
 	bignumber operator % (bignumber v) {
 		bignumber v1 = v;
-		DBASE b = (1 << BASE_SIZE);
+		DBASE b = 1;
+		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
 		int n = v1.len;
 		int m = u1.len - v1.len;
@@ -499,6 +492,15 @@ istream& operator>>(istream& in, bignumber& c)
 }
 int main() {
 	srand(time(NULL));
+	bignumber a;
+	bignumber b;
+	a.Input("237562976529375");
+	b.Input("346323262335");
+	bignumber c = a + b;
+	c.Output();
+	a.Output();
+	b.Output();
+	return 0;
 	int M = 1000;
 	int T = 1000;
 	int n = rand() % M + 1;
@@ -508,6 +510,7 @@ int main() {
 	bignumber C = A / B;
 	bignumber D = A % B;
 	do {
+		cout << T << endl;
  		int n = rand() % M + 1;
 		int m = rand() % M + 1;
 		bignumber A(n, 3);
