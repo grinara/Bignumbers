@@ -206,15 +206,19 @@ public:
 			int j = 0;
 			int k = 0;
 			while (j < v.len)
-			{
-				tmp = (1 << BASE_SIZE | coef[j]);
+			{	
+				tmp = 1;
+				tmp = tmp << BASE_SIZE;
+				tmp = (tmp | coef[j]);
 				tmp = tmp - v.coef[j] - k;
 				w.coef[j] = (BASE)tmp;
 				k = !(tmp >> BASE_SIZE);
 				j++;
 			}
 			while (j < len) {
-				tmp = (1 << BASE_SIZE | coef[j]);
+				tmp = 1;
+				tmp = tmp << BASE_SIZE;
+				tmp = (tmp | coef[j]);
 				tmp -= k;
 				w.coef[j] = (BASE)tmp;
 				k = !(tmp >> BASE_SIZE);
@@ -254,9 +258,10 @@ public:
 		else if (v == 1) { return *this; }
 		else {
 			int j = 0;
-			BASE r = 0;
+			DBASE r = 0;
 			DBASE tmp;
 			while (j < len) {
+
 				tmp = ((r << BASE_SIZE) + coef[len - 1 - j]);
 				q.coef[len - 1 - j] = (BASE)(tmp / v);
 				r = (BASE)(tmp % v);
@@ -268,7 +273,7 @@ public:
 
 	}
 	BASE operator % (BASE v) {
-		BASE r = 0;
+		DBASE r = 0;
 		if (v <= 0) { cout << "Деление на 0!!!"; }
 		else {
 			int j = 0;
@@ -492,7 +497,7 @@ istream& operator>>(istream& in, bignumber& c)
 }
 int main() {
 	srand(time(NULL));
-	bignumber a;
+	/*bignumber a;
 	bignumber b;
 	a.Input("237562976529375");
 	b.Input("346323262335");
@@ -501,6 +506,7 @@ int main() {
 	a.Output();
 	b.Output();
 	return 0;
+	*/
 	int M = 1000;
 	int T = 1000;
 	int n = rand() % M + 1;
