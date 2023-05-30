@@ -101,6 +101,7 @@ public:
 		int start = 0;
 		while (str[start] == '0') { start++; }
 		len = ((l - start - 1) / (BASE_SIZE / 4)) + 1;
+		if (len == 0) { len++; }
 		coef = new BASE[len];
 		for (int i = 0; i < len; i++) { this->coef[i] = 0; }
 		maxlen = len;
@@ -201,7 +202,7 @@ public:
 	bignumber operator -(const bignumber& v) {
 		DBASE tmp;
 		bignumber w(len);
-		if (*this < v) { cout << "������������� ��������"; }
+		if (*this < v) { cout << "Отрицательная разность"; }
 		else {
 			int j = 0;
 			int k = 0;
@@ -255,9 +256,9 @@ public:
 	}
 	bignumber operator / (BASE v) {
 		bignumber q(len);
-		if (v <= 0) { cout << "������� �� 0!!!"; }
+		if (v <= 0) { cout << "Деление на 0!!!"; }
 		else if (*this == 1) { return q; }
-		else if (v == 1) { q = *this; return q; }
+		else if (v == 1) { q = *this;  return q; }
 		else {
 			int j = 0;
 			DBASE r = 0;
@@ -276,7 +277,7 @@ public:
 	}
 	BASE operator % (BASE v) {
 		DBASE r = 0;
-		if (v <= 0) { cout << "������� �� 0!!!"; }
+		if (v <= 0) { cout << "Деление на 0!!!"; }
 		else if (*this == 1) { return 1; }
 		else if (v == 1) { return 0; }
 		else {
@@ -322,15 +323,17 @@ public:
 		return *this;
 	}
 	bignumber operator / (bignumber v) {
+		if (*this < v) { bignumber q(this->len); return q; }
+		if (*this == v) { bignumber q(this->len);q.coef[0]=1; return q; }
 		bignumber v1 = v;
 		DBASE b = 1;
-		b = ((DBASE)b << (BASE_SIZE));
+		b = ((DBASE)b << (BASE_SIZE));//b-основание
 		bignumber u1 = *this;
 		if (v.len == 1) { return u1 / v1.coef[0]; }
 
 		int n = v1.len;
-		int m = u1.len - v1.len;
-		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;
+		int m = u1.len - v1.len;//размерность частного
+		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;//нормализация
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
 		if (d != 1) {
@@ -340,8 +343,8 @@ public:
 		else {
 			u1.coef[len] = 0;
 		}
-		if(u1.len==m+n){ u1.coef[len] = 0; }
-		int j = m;
+		if(u1.len==m+n){ u1.coef[len] = 0; }//если размерность после нормализации 
+		int j = m;                           // не изменилась
 		bignumber w(m + 1);
 		DBASE q = 0;
 		BASE jjj;
@@ -362,29 +365,29 @@ public:
 				}
 				else break;
 			}
-			BASE q1 = (BASE)q;
+			BASE q1 = (BASE)q;//очередной разряд частного
 			int i = 0;
 			int k2 = 0;
 			int k1 = 0;
 			tmp1 = 0;
 			tmp2 = 0;
 			while (i < n)
-			{
+			{//умножаем делимое на разряд
 				tmp1 = (DBASE)v1.coef[i] * (DBASE)q1 + (DBASE)k1;
 				jjj = (BASE)tmp1;
 				
-				k1 = (BASE)(tmp1 >> BASE_SIZE);
+				k1 = (BASE)(tmp1 >> BASE_SIZE);//вычитаем
 				tmp2 = (b | (DBASE)u1.coef[i + j]) - (DBASE)jjj - (DBASE)k2;
 				u1.coef[j + i] = (BASE)tmp2;
 				k2 = !(tmp2 >> BASE_SIZE);
 				i++;
             }
-			
+			// разбираемся с последним
 			tmp = (b | (DBASE)u1.coef[n + j]) - k1 - k2;
 			u1.coef[n + j] = (BASE)tmp;
 			k2 = !(tmp >> BASE_SIZE);
 			tmp = 0;
-			if (k2 == 1) {
+			if (k2 == 1) {// если правильный раряд на 1 меньше
 				k2 = 0;
 				q1--;
 				while (i < n) {
@@ -403,11 +406,14 @@ public:
 
 	}
 	bignumber operator % (bignumber v) {
+		if (*this < v) { bignumber q = *this; return q; }
+		if (*this == v) { bignumber q(this->len); return q; }
 		bignumber v1 = v;
 		DBASE b = 1;
 		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
 		if (v1.len == 1) { return u1 % v1.coef[0]; }
+
 		int n = v1.len;
 		int m = u1.len - v1.len;
 		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;
@@ -507,16 +513,16 @@ istream& operator>>(istream& in, bignumber& c)
 }
 int main() {
 	srand(time(NULL));
-	/*bignumber a;
-	bignumber b;
-	a.Input("237562976529375");
-	b.Input("346323262335");
-	bignumber c = a + b;
-	c.Output();
-	a.Output();
-	b.Output();
-	return 0;
-	*/
+	//bignumber a;
+	//bignumber b;
+	//a.Input("45678734576374747564734645734647548989");
+	//b.Input("67899000789090");
+	//bignumber c = b / a;
+	//c.Output();
+	//a.Output();
+	//c.Output();
+	//return 0;
+	
 	int M = 1000;
 	int T = 100000;
 	int n = rand() % M + 1;
