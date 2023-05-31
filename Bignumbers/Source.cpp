@@ -3,8 +3,8 @@
 #include <string>
 #include <algorithm> 
 //https://www.online-cpp.com/
-typedef unsigned  char BASE;
-typedef unsigned  short int  DBASE;
+typedef unsigned int  BASE;
+typedef unsigned long long int  DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
 class bignumber {
@@ -202,7 +202,7 @@ public:
 	bignumber operator -(const bignumber& v) {
 		DBASE tmp;
 		bignumber w(len);
-		if (*this < v) { cout << "Отрицательная разность"; }
+		if (*this < v) { cout << "Отрицательная разность"<<endl; }
 		else {
 			int j = 0;
 			int k = 0;
@@ -298,18 +298,19 @@ public:
 		if (*this == 0 || v == 0) { return w; }
 		if (*this == 1) { w = v; return w; }
 		if (v == 1) { return w = *this; return w; }
-		for (int i = 0; i < w.maxlen; i++) { w.coef[i] = 0; }
+		//for (int i = 0; i < w.maxlen; i++) { w.coef[i] = 0; }
 		int m = len;
 		int n = v.len;
-		int k = 0;
+		//BASE k = 0;
 		DBASE tmp = 0;
 		for (int j = 0; j < n; j++) {
 			if (v.coef[j] != 0) {
-				k = 0;
+				BASE k = (BASE)0;
 				for (int i = 0; i < m; i++) {
 					tmp = (DBASE)coef[i] * (DBASE)v.coef[j] + (DBASE)w.coef[i + j] + (DBASE)k;
 					w.coef[i + j] = (BASE)tmp;
-					k = (BASE)(tmp >> BASE_SIZE);
+					tmp = (DBASE)tmp >> BASE_SIZE;
+					k = (BASE)tmp;
 				}
 				w.coef[j + m] = (BASE)k;
 
@@ -336,16 +337,15 @@ public:
 		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;//нормализация
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
-		if (d != 1) {
-			u1 = u1 * d;
-			v1 = v1 * d;
-		}
-		else {
-			u1.coef[len] = 0;
-		}
+		u1 = u1 * d;
+		v1 = v1 * d;
 		if(u1.len==m+n){ u1.coef[len] = 0; }//если размерность после нормализации 
 		int j = m;                           // не изменилась
 		bignumber w(m + 1);
+		//for (int i1 = 0; i1 < n; i1++) {
+		//	cout << u1.coef[i1]<<" ";
+		//}
+		//cout<< endl;
 		DBASE q = 0;
 		BASE jjj;
 		DBASE r = 0;
@@ -355,77 +355,94 @@ public:
 			q = 0;
 			r = 0;
 			q = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) / (DBASE)v1.coef[n - 1];
+			//cout << (int)q; cout << endl;
+
 			r = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) % (DBASE)v1.coef[n - 1];
 			while (r < b) {
-				tmp1 = b * r + (DBASE)u1.coef[j + n - 2];
+				tmp1 = (DBASE)b * (DBASE)r + (DBASE)u1.coef[j + n - 2];
 				tmp2 = (DBASE)v1.coef[n - 2] * q;
 				if ((q == b) || (tmp2 > tmp1)) {
 					q = q - 1;
-					r = r + (DBASE)v1.coef[n - 1];
+					r = (DBASE)r + (DBASE)v1.coef[n - 1];
 				}
 				else break;
 			}
 			BASE q1 = (BASE)q;//очередной разряд частного
 			int i = 0;
-			int k2 = 0;
-			int k1 = 0;
+			BASE k2 = 0;
+			BASE k1 = 0;
 			tmp1 = 0;
 			tmp2 = 0;
 			while (i < n)
 			{//умножаем делимое на разряд
 				tmp1 = (DBASE)v1.coef[i] * (DBASE)q1 + (DBASE)k1;
 				jjj = (BASE)tmp1;
-				
-				k1 = (BASE)(tmp1 >> BASE_SIZE);//вычитаем
+				tmp1 = tmp1 >> BASE_SIZE;
+				k1 = (BASE)(tmp1);//вычитаем
 				tmp2 = (b | (DBASE)u1.coef[i + j]) - (DBASE)jjj - (DBASE)k2;
 				u1.coef[j + i] = (BASE)tmp2;
-				k2 = !(tmp2 >> BASE_SIZE);
+				tmp2 = tmp2 >> BASE_SIZE;
+				k2 = !(tmp2);
 				i++;
             }
 			// разбираемся с последним
-			tmp = (b | (DBASE)u1.coef[n + j]) - k1 - k2;
+			tmp = ((DBASE)b | (DBASE)u1.coef[n + j]) - (DBASE)k1 - (DBASE)k2;
 			u1.coef[n + j] = (BASE)tmp;
-			k2 = !(tmp >> BASE_SIZE);
+			tmp = tmp >> BASE_SIZE;
+			k2 = !(tmp);
 			tmp = 0;
 			if (k2 == 1) {// если правильный раряд на 1 меньше
 				k2 = 0;
 				q1--;
+				i = 0;
+				/*for (int i1 = 0; i1 < n + m + 1; i1++) {
+					cout << (int)u1.coef[i1]<<" ";
+				}
+				cout << endl;*/
 				while (i < n) {
 					tmp = (DBASE)u1.coef[j + i] + (DBASE)v1.coef[i] + (DBASE)k2;
 					u1.coef[j + i] = (BASE)tmp;
-					k2 = (BASE)(tmp >> BASE_SIZE);
+					tmp = tmp >> BASE_SIZE;
+					k2 = (BASE)(tmp);
 					i++;
 				}
-				u1.coef[j + n] = u1.coef[j + n] + k2;;
+				u1.coef[j + n] = u1.coef[j + n] + k2;
+				/*for (int i1 = 0; i1 < n + m + 1; i1++) {
+					cout << (int)u1.coef[i1]<<" ";
+				}
+				cout << endl;*/
 			}
 			w.coef[j] = q1;
+			//cout << "g  " << q << "  q1  " << q1 << endl;
+			//for (int i1 = 0; i1 < n + m + 1; i1++) {
+			//	cout << u1.coef[i1]<<" ";
+			//}
+			//cout<< endl;
 			j--;
 		}
 		w.len_norm();
+
 		return w;
 
 	}
 	bignumber operator % (bignumber v) {
 		if (*this < v) { bignumber q = *this; return q; }
-		if (*this == v) { bignumber q(this->len); return q; }
+		if (*this == v) { bignumber q(len); return q; }
 		bignumber v1 = v;
 		DBASE b = 1;
 		b = ((DBASE)b << (BASE_SIZE));
 		bignumber u1 = *this;
-		if (v1.len == 1) { return u1 % v1.coef[0]; }
-
+		if (v1.len == 1) {
+			v1.coef[0] = u1 % v1.coef[0];
+			return v1;
+		}
 		int n = v1.len;
 		int m = u1.len - v1.len;
 		DBASE tmp = (DBASE)v1.coef[n - 1] + 1;
 		tmp = b / tmp;
 		BASE d = (BASE)tmp;
-		if (d != 1) {
-			u1 = u1 * d;
-			v1 = v1 * d;
-		}
-		else {
-			u1.coef[len] = 0;
-		}
+		u1 = u1 * d;
+		v1 = v1 * d;
 		if (u1.len == m + n) { u1.coef[len] = 0; }
 		int j = m;
 		bignumber w(m + 1);
@@ -440,43 +457,48 @@ public:
 			q = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) / (DBASE)v1.coef[n - 1];
 			r = ((DBASE)u1.coef[j + n] * b + (DBASE)u1.coef[j + n - 1]) % (DBASE)v1.coef[n - 1];
 			while (r < b) {
-				tmp1 = b * r + (DBASE)u1.coef[j + n - 2];
+				tmp1 = (DBASE)b * (DBASE)r + (DBASE)u1.coef[j + n - 2];
 				tmp2 = (DBASE)v1.coef[n - 2] * q;
 				if ((q == b) || (tmp2 > tmp1)) {
-					q = q - 1; r = r + (DBASE)v1.coef[n - 1];
+					q = q - 1;
+					r = r + (DBASE)v1.coef[n - 1];
 				}
 				else break;
 
 			}
 			BASE q1 = (BASE)q;
 			int i = 0;
-			int k2 = 0;
-			int k1 = 0;
+			BASE k2 = 0;
+			BASE k1 = 0;
 			tmp1 = 0;
 			tmp2 = 0;
 			while (i < n)
 			{
 				tmp1 = (DBASE)v1.coef[i] * q1 + k1;
 				jjj = (BASE)tmp1;
-
-				k1 = (BASE)(tmp1 >> BASE_SIZE);
+				tmp1 = tmp1 >> BASE_SIZE;
+				k1 = (BASE)(tmp1);
 				tmp2 = (b | (DBASE)u1.coef[i + j]) - jjj - k2;
 				u1.coef[j + i] = (BASE)tmp2;
-				k2 = !(tmp2 >> BASE_SIZE);
+				tmp2 = tmp2 >> BASE_SIZE;
+				k2 = !(tmp2);
 				i++;
 			}
 
-			tmp = (b | (DBASE)u1.coef[n + j]) - k1 - k2;
+			tmp = ((DBASE)b | (DBASE)u1.coef[n + j]) - (DBASE)k1 - (DBASE)k2;
 			u1.coef[n + j] = (BASE)tmp;
-			k2 = !(tmp >> BASE_SIZE);
+			tmp = tmp >> BASE_SIZE;
+			k2 = !(tmp);
 			tmp = 0;
 			if (k2 == 1) {
 				k2 = 0;
 				q1--;
+				i = 0;
 				while (i < n) {
 					tmp = (DBASE)u1.coef[j + i] + v1.coef[i] + k2;
 					u1.coef[j + i] = (BASE)tmp;
-					k2 = (BASE)(tmp >> BASE_SIZE);
+					tmp = tmp >> BASE_SIZE;
+					k2 = (BASE)(tmp);
 					i++;
 				}
 				u1.coef[j + n] = u1.coef[j + n] + k2;
@@ -485,9 +507,10 @@ public:
 			j--;
 		}
 
-		w.len_norm();
+		//w.len_norm();
 		u1.len_norm();
-		if(d!=1){ u1 = u1 / d; }
+		//u1.Output();
+		u1 = u1 / d; 
 		return u1;
 
 	}
@@ -513,37 +536,55 @@ istream& operator>>(istream& in, bignumber& c)
 }
 int main() {
 	srand(time(NULL));
-	//bignumber a;
-	//bignumber b;
-	//a.Input("45678734576374747564734645734647548989");
-	//b.Input("67899000789090");
-	//bignumber c = b / a;
-	//c.Output();
-	//a.Output();
-	//c.Output();
-	//return 0;
+	setlocale(LC_ALL, "Russian");
+	/*
+	bignumber a;
+	bignumber b;
+	bignumber c;
+	bignumber d;
+	a.Input("345743578237437346457437637");
+	b.Input("345345745457");
+	//c.Input("1875252885408677288903146384940492984870274286550455880847888785903332612864770411");
+	c = a/b;
+	d = a % b;
+	//d.Input("19441077529047");
+	c.Output();
+	d.Output();
+	cout << "(A == ((C * B) + D)) = " << (a == ((c * b) + d)) << endl;
+	cout << "((A - D) == (C * B)) = " << ((a - d) == (c * b)) << endl;
+	cout << "(D < B) = " << (d < b) << endl;
+	return 0;
+	*/
 	
 	int M = 1000;
-	int T = 100000;
+	int T = 1000;
 	int n = rand() % M + 1;
 	int m = rand() % M + 1;
 	bignumber A(n, 3);
-	bignumber B(n, 3);
-	bignumber C = A / B;
-	bignumber D = A % B;
+	bignumber B(m, 3);
+	bignumber C=A;
+	bignumber D=A;
+	for (int i = 0; i < 20; i++) {
+		T = 1000;
 		do {
-			cout << T << endl;
+			//cout << T << endl;
 			int n = rand() % M + 1;
 			int m = rand() % M + 1;
-			bignumber A(n, 3);
-			bignumber B(n, 3);
-			bignumber C = A / B;
-			bignumber D = A % B;
-			//A.Output();
-			//cout << endl << endl;
-			//B.Output();
-			//cout << endl << endl;
-		} while (A == C * B + D && A - D == C * B && D < B && --T);
-		cout << T;
-	//*/
+			A = bignumber(n, 1);
+			B = bignumber(m, 1);
+			C = A / B;
+			D = A % B;
+
+			//cout << "A- "; A.Output(); cout << endl;
+			//cout << "B- "; B.Output(); cout << endl;
+			//cout << "C- "; C.Output(); cout << endl;
+			//cout << "D- "; D.Output(); cout << endl;
+			//cout << "(A == ((C * B) + D)) = " << (A == ((C * B) + D)) << endl;
+			//cout << "((A - D) == (C * B)) = " << ((A - D) == (C * B)) << endl;
+			//cout << "(D < B) = " << (D < B) << endl;
+			
+
+		} while ((A == ((C * B) + D)) && ((A - D) == (C * B)) && (D < B) && (--T));
+		cout <<"тест - "<<i+1<<"  " << (1000 - T) <<" " << "итераций обработано без ошибок" << endl;
+	}
 }
