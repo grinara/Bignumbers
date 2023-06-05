@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm> 
 //https://www.online-cpp.com/
-typedef unsigned int  BASE;
+typedef unsigned int   BASE;
 typedef unsigned long long int  DBASE;
 #define BASE_SIZE (sizeof(BASE)*8)
 using namespace std;
@@ -558,13 +558,10 @@ int main() {
 	
 	int M = 1000;
 	int T = 1000;
-	int n = rand() % M + 1;
-	int m = rand() % M + 1;
-	bignumber A(n, 3);
-	bignumber B(m, 3);
-	bignumber C=A;
-	bignumber D=A;
-	for (int i = 0; i < 20; i++) {
+	int n=0;
+	int m=0;
+	bignumber A, B, C, D;
+	for (int i = 0; i < 10; i++) {
 		T = 1000;
 		do {
 			//cout << T << endl;
